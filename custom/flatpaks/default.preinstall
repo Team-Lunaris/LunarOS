@@ -75,6 +75,16 @@ Branch=stable
 [Flatpak Preinstall com.github.rafostar.Clapper]
 Branch=stable
 
+[Flatpak Preinstall com.spotify.Client]
+Branch=stable
+
+# Communication & Utilities
+[Flatpak Preinstall dev.vencord.Vesktop]
+Branch=stable
+
+[Flatpak Preinstall com.termius.termius]
+Branch=stable
+
 # System Utilities
 [Flatpak Preinstall com.github.tchx84.Flatseal]
 Branch=stable
@@ -92,6 +102,9 @@ Branch=stable
 Branch=stable
 
 [Flatpak Preinstall io.gitlab.adhami3310.Impression]
+Branch=stable
+
+[Flatpak Preinstall org.gnome.PowerStatistics]
 Branch=stable
 
 # Universal Blue Specific
