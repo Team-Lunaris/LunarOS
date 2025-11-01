@@ -1,0 +1,19 @@
+* text=auto
+
+# Shell scripts - always use LF
+*.sh text eol=lf
+*.bash text eol=lf
+*.just text eol=lf
+
+# YAML/Config files - always use LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+
+# Markdown - always use LF
+*.md text eol=lf
+
+# Git files - always use LF
+.gitignore text eol=lf
+.gitattributes text eol=lf
