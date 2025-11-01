@@ -11,19 +11,15 @@ setup-lunaros:
 
     # Apply GNOME dconf settings
     echo "Applying GNOME settings..."
-    dconf write /org/gnome/desktop/interface/gtk-application-prefer-dark-style true
-    dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
-    dconf write /org/gnome/desktop/interface/show-battery-percentage true
-    dconf write /org/gnome/settings-daemon/plugins/color/night-light-enabled true
-    dconf write /org/gnome/desktop/wm/preferences/titlebar-font "'Cantarell 11'"
-
-    # Set taskbar favorite applications
-    echo "Configuring taskbar favorites..."
-    dconf write /org/gnome/shell/favorite-apps "['app.zen_browser.zen', 'org.gnome.Nautilus', 'com.visualstudio.code', 'com.github.IsmaelMartinez.teams_for_linux', 'io.github.kolunmi.Bazaar', 'io.podman_desktop.PodmanDesktop']"
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+    gsettings set org.gnome.desktop.interface show-battery-percentage true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+    gsettings set org.gnome.desktop.wm.preferences titlebar-font "Cantarell 11"
 
     # Configure extensions
     echo "Configuring GNOME extensions..."
-    dconf write /org/gnome/shell/enabled-extensions "['dash-to-panel@jderose9.github.com', 'arcmenu@arcmenu.com']"
-    dconf write /org/gnome/shell/disabled-extensions "['dash-to-dock@micxgo.github.com', 'gsconnect@andyholmes.github.io', 'logomenu@aryan20.com']"
+    gsettings set org.gnome.shell enabled-extensions "['dash-to-panel@jderose9.github.com', 'arcmenu@arcmenu.com']"
+    gsettings set org.gnome.shell disabled-extensions "['dash-to-dock@micxgo.github.com', 'gsconnect@andyholmes.github.io', 'logomenu@aryan20.com']"
 
     echo "LunarOS GNOME setup complete!"
+    echo "Note: Log out and back in for all changes to take full effect."
