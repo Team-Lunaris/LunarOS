@@ -130,3 +130,23 @@ update-and-reboot:
     else
         echo "Reboot later to apply updates."
     fi
+
+# Configure iomem=relaxed kernel parameter for IO Access troubleshooting
+[group('Troubleshooting')]
+configure-iomem-relaxed:
+    #!/usr/bin/bash
+    source /usr/lib/ujust/ujust.sh
+    echo "Configuring iomem=relaxed kernel parameter..."
+
+    if rpm-ostree kargs --append=iomem=relaxed; then
+        echo "iomem=relaxed parameter configured via rpm-ostree."
+        echo "Reboot required for changes to take effect."
+        if gum confirm "Reboot now?"; then
+            systemctl reboot
+        else
+            echo "Remember to reboot later to apply kernel parameter changes."
+        fi
+    else
+        echo "Failed to configure kernel parameter via rpm-ostree."
+        exit 1
+    fi
