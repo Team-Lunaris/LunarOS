@@ -54,6 +54,9 @@ Branch=stable
 [Flatpak Preinstall com.mattjakeman.ExtensionManager]
 Branch=stable
 
+[Flatpak Preinstall com.termius.Termius]
+Branch=stable
+
 [Flatpak Preinstall io.github.flattool.Warehouse]
 Branch=stable
 
