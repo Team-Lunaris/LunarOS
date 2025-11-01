@@ -69,6 +69,48 @@ toggle-example-feature:
             ;;
     esac
 
+# Check for available firmware updates
+[group('Maintenance')]
+firmware-check:
+    #!/usr/bin/bash
+    echo "Checking for available firmware updates..."
+    fwupdmgr refresh
+    fwupdmgr get-updates
+    echo "Firmware check complete!"
+
+# Install available firmware updates
+[group('Maintenance')]
+firmware-update:
+    #!/usr/bin/bash
+    source /usr/lib/ujust/ujust.sh
+    echo "Checking for firmware updates..."
+    fwupdmgr refresh
+    
+    UPDATES=$(fwupdmgr get-updates)
+    if echo "$UPDATES" | grep -q "No updates available"; then
+        echo "Your firmware is up to date!"
+        exit 0
+    fi
+    
+    echo "$UPDATES"
+    if gum confirm "Install firmware updates?"; then
+        echo "Installing firmware updates..."
+        sudo fwupdmgr update
+        echo "Firmware updates complete! You may need to reboot."
+    else
+        echo "Firmware update cancelled."
+    fi
+
+# View installed firmware versions
+[group('System')]
+firmware-info:
+    #!/usr/bin/bash
+    echo "=== Installed Firmware Versions ==="
+    echo "BIOS: $(cat /sys/class/dmi/id/bios_version 2>/dev/null || echo 'N/A')"
+    echo "EC: $(cat /sys/class/dmi/id/ec_firmware_release 2>/dev/null || echo 'N/A')"
+    echo ""
+    fwupdmgr get-devices
+
 # Clean up container images and volumes
 [group('Maintenance')]
 clean-containers:
