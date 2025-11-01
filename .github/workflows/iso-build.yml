@@ -43,26 +43,15 @@ jobs:
           IMAGE_REGISTRY="ghcr.io/${OWNER}"
 
           EVENT="${{ github.event_name }}"
-          case "$EVENT" in
-            workflow_dispatch)
-              TAG_INPUT="${{ inputs.image_tag || '' }}"
-              if [ -z "$TAG_INPUT" ]; then
-                DEFAULT_TAG="stable"
-              else
-                DEFAULT_TAG="$TAG_INPUT"
-              fi
-              RETENTION="${{ inputs.retention_days || '' }}"
-              if [ -z "$RETENTION" ]; then RETENTION="7"; fi
-              ;;
-            pull_request)
-              DEFAULT_TAG="testing"
-              RETENTION="7"
-              ;;
-            *)
-              DEFAULT_TAG="stable"
-              RETENTION="7"
-              ;;
-          esac
+          TAG_INPUT="${{ inputs.image_tag || '' }}"
+          if [ -z "$TAG_INPUT" ]; then
+            DEFAULT_TAG="stable"
+          else
+            DEFAULT_TAG="$TAG_INPUT"
+          fi
+
+          RETENTION="${{ inputs.retention_days || '' }}"
+          if [ -z "$RETENTION" ]; then RETENTION="7"; fi
 
           DATE_STAMP="$(date -u +%Y%m%d%H%M)"
           SHORT_SHA="$(git rev-parse --short HEAD)"
@@ -97,10 +86,10 @@ jobs:
       - name: Build ISO with Just
         run: |
           set -euo pipefail
-          trap 'status=$?; if [ $status -ne 0 ] && [ -f /tmp/just-rebuild-iso.log ]; then echo "::group::Just build log"; cat /tmp/just-rebuild-iso.log; echo "::endgroup::"; fi' ERR
-          script -q -e -c "just rebuild-iso \"${TARGET_IMAGE}\" \"${DEFAULT_TAG}\"" /tmp/just-rebuild-iso.log
+          trap 'status=$?; if [ $status -ne 0 ] && [ -f /tmp/just-build-iso.log ]; then echo "::group::Just build log"; cat /tmp/just-build-iso.log; echo "::endgroup::"; fi' ERR
+          script -q -e -c "just build-iso \"${TARGET_IMAGE}\" \"${DEFAULT_TAG}\"" /tmp/just-build-iso.log
           trap - ERR
-          rm -f /tmp/just-rebuild-iso.log
+          rm -f /tmp/just-build-iso.log
 
       - name: Collect ISO artifacts
         id: collect
