@@ -9,6 +9,9 @@ set -eoux pipefail
 
 echo "::group:: Configure GNOME Settings"
 
+# Install GNOME Shell extensions
+dnf5 install -y gnome-shell-extension-dash-to-panel gnome-shell-extension-arc-menu
+
 # Create dconf configuration directory
 mkdir -p /etc/dconf/db.d/
 
@@ -27,9 +30,11 @@ titlebar-font='Cantarell 11'
 [org/gnome/settings-daemon/plugins/color]
 night-light-enabled=true
 
-# Taskbar favorite applications
+# Taskbar favorite applications and extensions
 [org/gnome/shell]
 favorite-apps=['app.zen_browser.zen', 'org.gnome.Nautilus', 'com.visualstudio.code', 'com.github.IsmaelMartinez.teams_for_linux', 'io.github.kolunmi.Bazaar', 'io.podman_desktop.PodmanDesktop']
+enabled-extensions=['dash-to-panel@jderose9.github.com', 'arcmenu@arcmenu.com']
+disabled-extensions=['dash-to-dock@micxgo.github.com', 'gsconnect@andyholmes.github.io', 'logomenu@aryan20.com']
 EOF
 
 # Update dconf database
