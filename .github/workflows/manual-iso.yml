@@ -1,0 +1,88 @@
+name: Manual ISO Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Target architecture for the installer ISO
+        required: true
+        default: x86_64
+        type: choice
+        options:
+          - x86_64
+          - aarch64
+      image_tag:
+        description: Container image tag to install from this repository
+        required: true
+        default: stable
+      version:
+        description: Optional version string for the ISO; defaults to current UTC timestamp
+        required: false
+      variant:
+        description: Installer variant (bootc or ostreecontainer)
+        required: true
+        default: bootc
+      retention_days:
+        description: Artifact retention in days
+        required: false
+        default: "7"
+
+jobs:
+  build-iso:
+    name: Build installer ISO
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Prepare build metadata
+        id: metadata
+        run: |
+          set -euo pipefail
+
+          IMAGE_NAME_RAW="${{ github.event.repository.name }}"
+          IMAGE_REGISTRY_RAW="ghcr.io/${{ github.repository_owner }}"
+          IMAGE_NAME="${IMAGE_NAME_RAW,,}"
+          IMAGE_REGISTRY="${IMAGE_REGISTRY_RAW,,}"
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+          echo "IMAGE_REGISTRY=$IMAGE_REGISTRY" >> "$GITHUB_ENV"
+
+          VERSION_INPUT="${{ inputs.version }}"
+          if [ -n "$VERSION_INPUT" ]; then
+            VERSION="$VERSION_INPUT"
+          else
+            VERSION="$(date -u +%Y%m%d%H%M)"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          ISO_NAME="${IMAGE_NAME}-${{ inputs.image_tag }}-${VERSION}.iso"
+          echo "ISO_NAME=$ISO_NAME" >> "$GITHUB_ENV"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "iso_name=$ISO_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Build ISO
+        uses: jasonn3/build-container-installer@main
+        id: build
+        with:
+          arch: ${{ inputs.arch }}
+          image_name: ${{ env.IMAGE_NAME }}
+          image_repo: ${{ env.IMAGE_REGISTRY }}
+          image_tag: ${{ inputs.image_tag }}
+          version: ${{ steps.metadata.outputs.version }}
+          variant: ${{ inputs.variant }}
+          iso_name: ${{ steps.metadata.outputs.iso_name }}
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.iso_name }}
+          path: |
+            ${{ steps.build.outputs.iso_path }}/${{ steps.build.outputs.iso_name }}
+            ${{ steps.build.outputs.iso_path }}/${{ steps.build.outputs.iso_name }}-CHECKSUM
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention_days }}
+          compression-level: 0
