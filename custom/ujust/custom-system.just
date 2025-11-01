@@ -85,13 +85,11 @@ firmware-update:
     source /usr/lib/ujust/ujust.sh
     echo "Checking for firmware updates..."
     fwupdmgr refresh
-    
     UPDATES=$(fwupdmgr get-updates)
     if echo "$UPDATES" | grep -q "No updates available"; then
         echo "Your firmware is up to date!"
         exit 0
     fi
-    
     echo "$UPDATES"
     if gum confirm "Install firmware updates?"; then
         echo "Installing firmware updates..."
