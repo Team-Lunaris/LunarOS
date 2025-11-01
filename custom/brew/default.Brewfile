@@ -20,3 +20,6 @@ brew "zoxide"     # Smarter cd command
 # Utilities
 brew "htop"       # Interactive process viewer
 brew "tmux"       # Terminal multiplexer
+
+# Applications
+cask "claude-code"   # Claude Code
