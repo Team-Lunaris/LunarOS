@@ -18,6 +18,7 @@ brew "starship"   # Cross-shell prompt
 brew "zoxide"     # Smarter cd command
 
 # Utilities
+brew "btop"       # Modern resource monitor
 brew "htop"       # Interactive process viewer
 brew "tmux"       # Terminal multiplexer
 
