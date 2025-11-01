@@ -1,0 +1,138 @@
+name: ISO Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Container image tag to use for the ISO build (defaults to stable on manual runs, testing on PRs)
+        required: false
+      retention_days:
+        description: Artifact retention in days
+        required: false
+        default: "7"
+
+jobs:
+  build-iso:
+    name: Build installer ISO
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Prepare build metadata
+        id: prep
+        run: |
+          set -euo pipefail
+
+          IMAGE_NAME_RAW="${{ github.event.repository.name }}"
+          OWNER_RAW="${{ github.repository_owner }}"
+          IMAGE_NAME="${IMAGE_NAME_RAW,,}"
+          OWNER="${OWNER_RAW,,}"
+          IMAGE_REGISTRY="ghcr.io/${OWNER}"
+
+          EVENT="${{ github.event_name }}"
+          case "$EVENT" in
+            workflow_dispatch)
+              TAG_INPUT="${{ inputs.image_tag || '' }}"
+              if [ -z "$TAG_INPUT" ]; then
+                DEFAULT_TAG="stable"
+              else
+                DEFAULT_TAG="$TAG_INPUT"
+              fi
+              RETENTION="${{ inputs.retention_days || '' }}"
+              if [ -z "$RETENTION" ]; then RETENTION="7"; fi
+              ;;
+            pull_request)
+              DEFAULT_TAG="testing"
+              RETENTION="7"
+              ;;
+            *)
+              DEFAULT_TAG="stable"
+              RETENTION="7"
+              ;;
+          esac
+
+          DATE_STAMP="$(date -u +%Y%m%d%H%M)"
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          ISO_NAME="${IMAGE_NAME}-${DEFAULT_TAG}-${DATE_STAMP}-${SHORT_SHA}.iso"
+          TARGET_IMAGE="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+
+          {
+            echo "IMAGE_NAME=$IMAGE_NAME"
+            echo "IMAGE_REGISTRY=$IMAGE_REGISTRY"
+            echo "DEFAULT_TAG=$DEFAULT_TAG"
+            echo "DATE_STAMP=$DATE_STAMP"
+            echo "SHORT_SHA=$SHORT_SHA"
+            echo "ISO_NAME=$ISO_NAME"
+            echo "TARGET_IMAGE=$TARGET_IMAGE"
+            echo "RETENTION_DAYS=$RETENTION"
+          } >> "$GITHUB_ENV"
+
+          echo "iso_name=$ISO_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Install build dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y just jq
+
+      - name: Mount BTRFS for podman storage
+        uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140 # main
+        continue-on-error: true
+        with:
+          target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
+
+      - name: Build ISO with Just
+        run: |
+          set -euo pipefail
+          trap 'status=$?; if [ $status -ne 0 ] && [ -f /tmp/just-rebuild-iso.log ]; then echo "::group::Just build log"; cat /tmp/just-rebuild-iso.log; echo "::endgroup::"; fi' ERR
+          script -q -e -c "just rebuild-iso \"${TARGET_IMAGE}\" \"${DEFAULT_TAG}\"" /tmp/just-rebuild-iso.log
+          trap - ERR
+          rm -f /tmp/just-rebuild-iso.log
+
+      - name: Collect ISO artifacts
+        id: collect
+        run: |
+          set -euo pipefail
+
+          mkdir -p artifacts
+          ISO_SRC="$(find output -type f -name '*.iso' -print -quit)"
+          if [ -z "$ISO_SRC" ]; then
+            echo "No ISO image produced by build" >&2
+            exit 1
+          fi
+
+          cp "$ISO_SRC" "artifacts/${ISO_NAME}"
+          (cd artifacts && sha256sum "${ISO_NAME}" > "${ISO_NAME}.sha256")
+
+          METADATA_FILE="artifacts/${ISO_NAME%.iso}.metadata"
+          {
+            echo "source_image=${TARGET_IMAGE}:${DEFAULT_TAG}"
+            echo "iso_name=${ISO_NAME}"
+            echo "generated_at=${DATE_STAMP}"
+            echo "commit=${GITHUB_SHA}"
+            echo "source_path=${ISO_SRC}"
+          } > "$METADATA_FILE"
+
+          echo "iso_path=artifacts/${ISO_NAME}" >> "$GITHUB_OUTPUT"
+          echo "checksum_path=artifacts/${ISO_NAME}.sha256" >> "$GITHUB_OUTPUT"
+          echo "metadata_path=$METADATA_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prep.outputs.iso_name }}
+          path: |
+            ${{ steps.collect.outputs.iso_path }}
+            ${{ steps.collect.outputs.checksum_path }}
+            ${{ steps.collect.outputs.metadata_path }}
+          if-no-files-found: error
+          retention-days: ${{ env.RETENTION_DAYS }}
+          compression-level: 0
