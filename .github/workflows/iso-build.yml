@@ -1,13 +1,15 @@
 name: ISO Build
 
 on:
-  pull_request:
+  push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Container image tag to use for the ISO build (defaults to stable on manual runs, testing on PRs)
+        description: Container image tag to use for the ISO build (defaults to stable)
         required: false
       retention_days:
         description: Artifact retention in days
