@@ -209,6 +209,10 @@ build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build
 [group('Build Virtal Machine Image')]
 build-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "iso/iso.toml")
 
+# Build an ISO using the published GHCR image
+[group('Build Virtal Machine Image')]
+build-gh-iso $target_image="ghcr.io/team-lunaris/lunaros" $tag="stable": && (_build-bib target_image tag "iso" "iso/iso.toml")
+
 # Rebuild a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
 rebuild-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "iso/disk.toml")
