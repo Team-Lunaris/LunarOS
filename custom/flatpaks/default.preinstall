@@ -7,6 +7,12 @@
 [Flatpak Preinstall org.mozilla.firefox]
 Branch=stable
 
+[Flatpak Preinstall app.zen_browser.zen]
+Branch=stable
+
+[Flatpak Preinstall com.google.Chrome]
+Branch=stable
+
 # GNOME Core Applications
 [Flatpak Preinstall org.gnome.Calculator]
 Branch=stable
@@ -48,6 +54,9 @@ Branch=stable
 [Flatpak Preinstall com.mattjakeman.ExtensionManager]
 Branch=stable
 
+[Flatpak Preinstall com.termius.Termius]
+Branch=stable
+
 [Flatpak Preinstall io.github.flattool.Warehouse]
 Branch=stable
 
@@ -58,6 +67,17 @@ Branch=stable
 Branch=stable
 
 [Flatpak Preinstall io.gitlab.adhami3310.Impression]
+Branch=stable
+
+# Communication
+[Flatpak Preinstall dev.vencord.Vesktop]
+Branch=stable
+
+[Flatpak Preinstall com.github.IsmaelMartinez.teams_for_linux]
+Branch=stable
+
+# Media & Audio
+[Flatpak Preinstall com.spotify.Client]
 Branch=stable
 
 # Universal Blue Specific
