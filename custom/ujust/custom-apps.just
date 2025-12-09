@@ -78,3 +78,11 @@ install-vscode:
 [group('Apps')]
 install-gimp:
     ujust install-flatpak org.gimp.GIMP
+
+# Install Droid CLI from Factory
+[group('Development')]
+install-droid:
+    #!/usr/bin/bash
+    echo "Installing Droid CLI from Factory..."
+    curl -fsSL https://app.factory.ai/cli | sh
+    echo "Droid CLI installation complete!"

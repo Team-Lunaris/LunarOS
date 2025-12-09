@@ -34,8 +34,8 @@ echo "::group:: Install Packages"
 # Install packages using dnf5
 # Example: dnf5 install -y tmux
 
-# Example using COPR with isolated pattern:
-# copr_install_isolated "ublue-os/staging" package-name
+# Install Ghostty terminal from COPR
+copr_install_isolated "scottames/ghostty" ghostty
 
 echo "::endgroup::"
 
